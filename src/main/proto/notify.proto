@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gale.notifier";
+option java_outer_classname = "NotifyProto";
+
+package notify;
+
+enum MessageType {
+  // 默认为心跳消息，处理方可以不做任何处理
+  HEART_BEAT = 0;
+
+  // 1-10 空间相关
+  CREATE_SPACE = 1;         // 创建空间
+  EDIT_SPACE = 2;           // 编辑空间
+
+  // 11-20 目录相关
+  CREATE_DIR = 11;          // 新建文件夹
+  EDIT_DIR = 12;            // 编辑文件夹
+
+  // 21-30 文件相关
+  CREATE_FILE = 21;         // 新建文件
+  VIEW_FILE = 22;           // 预览文件
+  EDIT_FILE = 23;           // 编辑文件
+  MOVE_FILE = 24;           // 移动文件
+  DELETE_FILE = 25;         // 删除文件
+  DOWNLOAD_FILE = 26;       // 下载文件
+  RECOVER_FILE = 27;        // 恢复文件
+  CLEAN_DELETE_FILE = 28;   // 彻底删除
+
+  // 31-40 设置相关
+  SECURITY_SET = 31;        // 安全设置
+}
+
+message BaseMessage {
+  string messageId = 1;
+  MessageType messageType = 2;
+  string content = 3;
+  uint64 sendTime = 4;
+}
+
+message Response {
+  repeated ConsumerResponse consumerResponses = 3;  // 一个消息被多个消费者消费时，多个消费者的回复
+}
+
+message ConsumerResponse {
+  string messageId = 1;         // 消息id
+  uint64 sendTime = 2;          // 消息的发送时间
+  uint64 consumerName = 3;      // 消费者名称
+  uint64 consumeTime = 4;       // 消费时间
+  string content = 5;           // 消费结果
+}
+
+service Notifier {
+  rpc send(stream BaseMessage) returns (stream Response) {}
+}

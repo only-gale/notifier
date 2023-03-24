@@ -1,0 +1,75 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.10'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'com.google.protobuf' version '0.9.1'
+}
+
+group = 'com.gale'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation ('net.devh:grpc-spring-boot-starter:2.14.0.RELEASE') {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java-util'
+    }
+    // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util
+    implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.21.7'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+// The protobuf-gradle-plugin adds a protobuf block to the project. It provides all the configuration knobs.
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        // Download from repositories
+        artifact = "com.google.protobuf:protoc:3.21.7"
+
+        // You may also specify a local path.
+        // path = '/usr/local/bin/protoc'
+    }
+
+    // Locate the codegen plugins
+    plugins {
+        // Locate a plugin with name 'grpc'. This step is optional.
+        // If you don't locate it, protoc will try to use "protoc-gen-grpc" from system search path.
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.52.1'
+            // or
+            // path = 'tools/protoc-gen-grpc-java'
+        }
+        // Any other plugins
+        // ...
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
